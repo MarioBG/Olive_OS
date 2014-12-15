@@ -1,0 +1,19 @@
+local tArgs= { ... }
+local razon=shell.resolve(tArgs[1])
+term.setBackgroundColor(2048)
+tamx,tamy=term.getSize()
+term.scroll(tamy)
+term.setTextColor(2048)
+term.setBackgroundColor(1)
+term.setCursorPos(tamx/2-#"ERROR CRITICO"/2,tamy/2-1)
+print"ERROR CRITICO"
+term.setTextColor(1)
+term.setBackgroundColor(2048)
+term.setCursorPos(tamx/2-#"El sistema se reiniciará"/2,tamy/2)
+print"El sistema se reiniciará"
+term.setCursorPos(tamx/2-#("Razón del error:"..razon)/2,tamy/2+1)
+print("Razón del error:"..razon)
+term.setCursorPos(tamx/2-#"Pulse una tecla para continuar..."/2,tamy/2+2)
+print"Pulse una tecla para continuar..."
+os.pullEvent("key")
+os.reboot()

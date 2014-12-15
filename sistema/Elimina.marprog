@@ -1,0 +1,16 @@
+os.pullEvent=os.pullEventRaw
+tamx,tamy=term.getSize()
+shell.run("clear")
+term.setBackgroundColor(colors.lightBlue) term.setTextColor(colors.white)		--Colores
+olive.square(1,1,tamx,tamy,colors.lightBlue)
+term.setCursorPos(tamx/2-#"Seguro que quiere eliminar esta cuenta de usuario?"/2,3)
+olive.square(1,tamy/2,tamx/2,tamy/2,colors.green)
+olive.square(tamx/2,tamy/2,tamx/2,tamy/2,colors.red)
+term.setBackgroundColor(colors.black) term.setTextColor(colors.white)
+olive.writeAt(tamx/4-1,3*tamy/4,"SI")
+olive.writeAt(3*tamx/4-1,3*tamy/4,"NO")
+a,x,y=os.pullEvent("mouse_click")
+if x<tamx/2 and y>tamy/2 then
+fs.delete("/usuarios/"..usn)
+shell.run("sistema/usel.marprog")
+end
