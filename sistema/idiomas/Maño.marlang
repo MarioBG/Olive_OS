@@ -1,6 +1,6 @@
 {
 ["Codigo"]="es_ZA",
-["Idioma"]="Manyo",
+["Idioma"]="Maño",
 ["Pais"]="Espania",
 ["menucontext"]="Menu Contextuarl",
 ["missing"]="No encuentro el pijo",
@@ -34,7 +34,7 @@
 ["confirmborrar"]="Desea borrar el (ar)chivo?",
 ["yaexiste"]="El (ar)chivo ya existe",
 ["noexiste"]="El (ar)chivo no existe",
-["inicio"]="Corre acho",
+["inicio"]="Inicio",
 ["rutaactual"]="Ruta:",
 ["error"]="Errorl, quietor",
 ["escritorio"]="Ejcritorio",

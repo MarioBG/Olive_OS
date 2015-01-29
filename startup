@@ -17,7 +17,6 @@ function main()
 if term.isColor()==true then
 logo=paintutils.loadImage("sistema/olivelogo.pai")
 os.loadAPI("sistema/apis/olive")
-os.loadAPI("sistema/apis/oliveFS")
 shell.run("clear")
 term.setTextColor(16384)
 tamx,tamy=term.getSize()
