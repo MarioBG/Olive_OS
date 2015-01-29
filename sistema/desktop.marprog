@@ -1,0 +1,305 @@
+--[[Interfaz de Escritorio, parte del Sistema Operativo Mar&Mar Olive para ComputerCraft
+	Desktop (C) Mar&Mar Hisperia 2012
+	Olive, Desktop y Mar&Mar Olive son marcas registradas de Mar&Mar SL. Queda prohibido su uso sin autorización expresa del propietario de dicha marca.]]--
+printError=olive.throwBSOD
+function setTable(name, xmin, xmax, ymin, ymax)
+   menu[name] = {}
+   menu[name]["xmin"] = xmin
+   menu[name]["xmax"] = xmax
+   menu[name]["ymin"] = ymin
+   menu[name]["ymax"] = ymax
+end
+function customRun(path,...)			--Thanks to InDieTasten from the CC Forums
+	local l, errCont = loadfile(path) -- it will load the file(+ throw syntax errors)
+	if(not l) then
+		olive.throwError(tostring(errCont))
+	else
+		local e, m = pcall(l, ...) -- executing the code in the file with arguments
+		if(not e) then
+			olive.throwError(tostring(m))
+		end
+	end
+end
+function oliveChoice(archivo)
+	OLIVE_Choice=olive.alerta2Opcs(olive.getTexto("archivo"),olive.getTexto("abroedit"),olive.getTexto("abrefile"),olive.getTexto("editfile"))
+	if OLIVE_Choice==olive.getTexto("abrefile") then
+		customRun(archivo)
+	elseif OLIVE_Choice==olive.getTexto("editfile") then
+		shell.run("sistema/edit2.marprog",archivo)
+	elseif OLIVE_Choice~=false then
+		olive.throwError(olive.getTexto("exefallo"))
+	end
+end
+function abreArchivo(archivo,dato)
+	if fs.isDir(archivo) and not dato then
+		shell.run("sistema/Explora.marprog",archivo)
+	elseif fs.isDir(archivo) then
+		ruta=archivo
+	elseif fs.exists(archivo) then
+		r,actualok,ext=string.match(archivo, "(.-)([^\\/]-%.?([^%.\\/]*))$")
+		local accion=olive.checkExtension("."..ext, "ejecutar") if ext=="directorio" then accion="sistema/Explora.marprog" end
+		if fs.exists(accion) or fs.exists("rom/programs/"..accion) or fs.exists("rom/programs/"..accion) then
+			pcall(shell.run,accion, archivo)
+			if not ok then olive.throwError(err) end
+		elseif accion=="action_check" then
+			oliveChoice(archivo)
+		elseif accion=="action_nlc" then
+			local accion, parag=olive.abrirEnlace(archivo)
+			if accion=="exe" then
+				local ok,contentError=pcall(shell.run,parag)
+				if not ok then
+					olive.throwError(contentError)
+				end
+			elseif accion=="sistema/explora.marprog" then
+				local ok,contentError=pcall(shell.run,"sistema/explora.marprog",parag)
+				if not ok then
+					olive.throwError(contentError)
+				end
+			else
+				shell.run(accion,parag)
+			end
+		else
+			shell.run(accion,archivo)
+		end
+	end
+end
+function isInteger(n)
+return math.floor(n)==n
+end
+function dibuEscritorio(usn,escritorio)
+nescri=#escritorio
+veces=1
+xveces=1
+term.clear()
+term.setTextColor(1)
+term.setCursorPos(1,1)
+term.setBackgroundColor(8)
+term.scroll(tamy)
+olive.writeAt(1,tamy-1,olive.version("corto"))
+veces=0
+xveces=1
+yveces=1
+tamybar=tamy-1
+if usn=="MADIBA" then													--EASTER EGGS
+olive.setColors(colors.black,colors.white)
+olive.writeAt(tamx-#"RIP Mandela",tamy-1,"RIP Mandela")
+elseif usn=="MarioBG" then
+olive.setColors(colors.green,colors.white)
+olive.writeAt(tamx-#"Master Programmer",tamy-1,"Master Programmer")
+local cara=paintutils.loadImage("sistema/eastereggs/cara.pai")
+paintutils.drawImage(cara,tamx/2-12/2,tamy/2-4-1)
+elseif usn=="tonacho" or usn=="Tonacho" then
+local cara=paintutils.loadImage("sistema/eastereggs/cara.pai")
+paintutils.drawImage(cara,tamx/2-12/2,tamy/2-4-1)
+olive.setColors(colors.red,colors.white)
+olive.writeAt(tamx-#"Diox de la Preston",tamy-1,"Diox de la Preston")
+elseif string.lower(usn)=="chincheto" or string.lower(usn)=="chincheto77" or string.lower(usn)=="srchincheto77" then
+local cara=paintutils.loadImage("sistema/eastereggs/cara.pai")
+paintutils.drawImage(cara,tamx/2-12/2,tamy/2-4-1)
+olive.setColors(colors.blue,colors.white)
+olive.writeAt(tamx-#"Dios del Peluche",tamy-1,"Dios del Peluche")
+end
+while veces<=nescri do
+if veces==0 then
+actual=escritorio[1]
+else
+actual=escritorio[veces]
+end
+r,actualok,ext=string.match("usuarios/"..usn.."/escritorio/"..actual, "(.-)([^\\/]-%.?([^%.\\/]*))$")    --Un poco bugueado
+term.setCursorPos(xveces*8,yveces-2)
+actualok=string.gsub(actualok,"."..ext,"",1)
+if fs.isDir("usuarios/"..usn.."/escritorio/"..actual) then 									--Extensiones
+local col,let=olive.checkExtension("carpeta")
+olive.dibujarIcono(col,let)
+else
+local col,let=olive.checkExtension("."..ext)
+olive.dibujarIcono(col,let)
+actualok=actual
+end
+if string.len(actualok)>11 then
+actualok=string.sub(actualok,1,11)
+actualok=actualok.."..."
+end
+term.setCursorPos(xveces*8-#actualok/2,yveces-1)
+term.setBackgroundColor(8)
+term.setTextColor(1)
+print(actualok)
+yveces=yveces+3
+if yveces>=tamybar then
+xveces=xveces+2
+yveces=1
+veces=veces-1
+end
+if xveces>tamx/8 then
+break
+end
+veces=veces+1
+end
+olive.dibuTareas()
+end
+function arreglar()
+function llenarTabla(escritorio,veces)
+local menu={}
+   setTable(escritorio[veces], xveces, xveces+4, 3*veces-2, 3*veces)
+   veces=veces+1
+	if veces>=math.floor(tamy/3)-2 then
+	veces=0
+	xveces=xveces+5
+   end
+   end
+while veces<=nescri do
+llenarTabla(escritorio,veces)
+   if xveces>=math.floor(tamx/5) then
+   break
+   end
+   veces=veces+1
+end
+end
+shell.run("clear")													--INICIO DEL PROGRAMA REAL
+local tArgs = { ... }
+menu={}
+function funcEscrit()
+while true do
+term.setCursorBlink(false)
+tamx,tamy=term.getSize()
+haPasao=false
+salir=false
+if #tArgs>1 then
+olive.throwBSOD("desktop.marprog:#args>1")
+else																	--Aquí empieza el programa en sí mismo
+if #tArgs==1 then local usn=shell.resolve(tArgs[1]) end
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+hasInicio=false
+reloj=os.startTimer(0.1)
+while true do															--Reconocimiento de eventos 1
+event,a,b,c=os.pullEvent()
+if not fs.exists("usuarios/"..usn) then
+	error(olive.getTexto("missingusr"),0)
+end
+if event=="timer" and a==dibuEsc then
+	escritorio=fs.list("usuarios/"..usn.."/escritorio")
+	dibuEscritorio(usn,escritorio)
+end
+if event=="key" and a==49 then
+narchi=olive.entraNombre(olive.getTexto("nuevoarch"),30)
+if type(narchi)=="string" and fs.exists("usuarios/"..usn.."/escritorio/"..narchi) then olive.throwError("Archivo ya existente") elseif type(narchi)=="string" then
+f=fs.open("usuarios/"..usn.."/escritorio/"..narchi,"w")
+f.close()
+end
+reloj=os.startTimer(0.1)
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+end
+if event=="key" and a==48 then
+narchi=olive.entraNombre(olive.getTexto("borrararch"),30)
+if type(narchi)=="string" and fs.exists("usuarios/"..usn.."/escritorio/"..narchi) then
+	decision=olive.alertaSiNo("Alerta del sistema","Desea mover el archivo a la papelera?")
+	if decision then fs.move("usuarios/"..usn.."/escritorio/"..narchi,"usuarios/"..usn.."/papelera/"..narchi) end
+	decision=nil
+elseif type(narchi)=="string" then olive.throwError("No existe el archivo") end
+reloj=os.startTimer(0.1)
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+end
+if event=="key" and a==50 then
+narchi=olive.entraNombre(olive.getTexto("nuevacarp"),30)
+if type(narchi)=="string" and fs.isDir("usuarios/"..usn.."/escritorio/"..narchi) then olive.throwError("Archivo ya existente") elseif type(narchi)=="string" then fs.makeDir("usuarios/"..usn.."/escritorio/"..narchi) end
+reloj=os.startTimer(0.1)
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+end
+if event=="timer" and a==reloj then
+term.setBackgroundColor(colors.blue)
+term.setCursorPos(tamx-4,tamy)
+term.setTextColor(1)
+olive.writeHour(tamx-4,tamy)
+if os.time()<500 then
+write"     "
+end
+reloj=os.startTimer(0.1)
+end
+if event=="mouse_click" and c<tamy then			--Escritorio
+selx=0 sely=0
+if isInteger(c/3) and c<16 then
+sely=c/3
+elseif isInteger((c+1)/3) and c<16 then
+sely=(c+1)/3
+end
+v=1
+while v<=(tamx+2*v)/14 do
+if b>(v-1)*14 and b<=v*14 and isInteger(c/3) and c<16 or  b>(v-1)*14 and b<=v*14 and isInteger((c+1)/3) and c<16 then
+selx=v
+break
+end
+v=v+1
+end
+sel=sely+5*selx-5
+if sel<0 then
+sel=0
+end
+if sel~=0 then
+if a==1 then
+	arch=escritorio[sel]
+	if arch~=nil then
+		r,actualok,ext=string.match("usuarios/"..usn.."/escritorio/"..arch, "(.-)([^\\/]-%.?([^%.\\/]*))$")
+			abreArchivo("usuarios/"..usn.."/escritorio/"..arch)
+		reloj=os.startTimer(0.1)
+		selx=0
+		sely=0
+	end
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+elseif a==2 and escritorio[sel] then
+	arch=escritorio[sel]
+	shell.run("sistema/mcontext.marprog","usuarios/"..usn.."/escritorio/"..arch)
+elseif a==2 then
+	shell.run("sistema/mcontext.marprog","usuarios/"..usn.."/escritorio/")
+end
+dibuEscritorio(usn,escritorio)
+dibuEsc=os.startTimer(0.7)
+reloj=os.startTimer(0.1)
+end
+end
+if event=="mouse_click" and c==tamy and b>=1 and b<=#olive.getTexto("inicio")+4 or event=="key" and a==29 then --MENU DE INICIO
+accion=nil arg1=nil arg2=nil arg3=nil arg4=nil
+f=fs.open("usuarios/"..usn.."/color.sist","r")
+OLIVE_UsrColor=f.readLine()
+f.close()
+accion,arg1,arg2,arg3,arg4=olive.barraInicio(usn,OLIVE_UsrColor)
+if accion=="run" and arg1~=nil then
+if arg2==nil then arg2="" end if arg3==nil then arg3="" end
+shell.run(arg1.." "..arg2)
+elseif accion=="ruta" and arg1~=nil then
+shell.run("sistema/explora.marprog",arg1)
+end
+if accion=="salir" then
+	shell.run("rom/programs/shell")
+end
+accion="" arg1=""
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+reloj=os.startTimer(0.2)
+end
+if hasInicio==false and haPasao==true then
+break
+end
+if accion=="salir" or salir==true then
+break
+end
+end
+end
+escritorio=fs.list("usuarios/"..usn.."/escritorio")
+dibuEscritorio(usn,escritorio)
+if accion=="salir" or salir==true then
+olive.setColors(colors.black,colors.yellow)
+shell.run("clear")
+print(os.version().." lanzado desde "..olive.version())
+break
+end
+end
+end
+local ok,p1=pcall(funcEscrit)
+if not ok then
+	olive.throwBSOD(p1)
+end

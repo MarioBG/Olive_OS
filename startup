@@ -1,0 +1,50 @@
+os.pullEvent=os.pullEventRaw
+function barraProgreso(tiempo)
+	tamx,tamy=term.getSize()
+	timeout=tiempo/tamx
+	veces=0
+	olive.setColors(colors.black,colors.white)
+	olive.writeAt(tamx/2-#"Cargando..."/2,tamy-1,"Cargando...")
+	term.setCursorPos(1,tamy)
+	while veces<tamx do
+	term.setBackgroundColor(colors.green)
+	write" "
+	sleep(timeout)
+	veces=veces+1
+	end
+end
+function main()
+if term.isColor()==true then
+logo=paintutils.loadImage("sistema/olivelogo.pai")
+os.loadAPI("sistema/apis/olive")
+os.loadAPI("sistema/apis/oliveFS")
+shell.run("clear")
+term.setTextColor(16384)
+tamx,tamy=term.getSize()
+term.setCursorPos(tamx/2-(#"Mar&Mar"/2), 2)
+tx,ty=term.getCursorPos()
+print "Mar&Mar"
+term.setCursorPos(tx+1, ty+1)
+term.setTextColor(8192)
+print "Olive"
+term.setTextColor(1)
+term.setCursorPos(tamx/2-12,ty+3)
+term.setTextColor(32)
+write"100%"
+term.setTextColor(1)
+write" Tecnologia"
+term.setTextColor(32)
+print" Andaluza"
+paintutils.drawImage(logo,3,6)
+olive.setColors(colors.black, colors.white) olive.writeAt(tamx/2-#olive.version("completo")/2+1,tamy-2,olive.version("completo"))
+barraProgreso(1)
+--Fin del texto de carga
+shell.run("sistema/usel.marprog")
+else
+print "Este terminal no soporta color, por tanto, tampoco este Sistema Operativo"
+end
+end
+local ok,contentError=pcall(main)
+if not ok then
+	olive.throwBSOD(contentError)
+end

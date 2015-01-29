@@ -1,0 +1,616 @@
+--Olive API, parte del Sistema Operativo Mar&Mar Olive para ComputerCraft
+--Olive (C) Mar&Mar Hisperia 2012
+--Olive, Olive API y Mar&Mar Olive son marcas registradas de Mar&Mar SL. Queda prohibido su uso sin autorización expresa del propietario de dicha marca.
+function version(tamano)
+if tamano=="corto" then
+return "Olive v1.2.1"
+elseif tamano=="esquema" or tamano=="numero" then
+return "1.2.1"
+elseif tamano=="artistic" then
+return "\"Cool Seabreeze\""
+elseif tamano=="completo" then
+return "Mar&Mar Olive Release 1.2.1 \"Cool Seabreeze\""
+else
+return "Mar&Mar Olive v1.2.1"
+end
+end
+function getTexto(arg)
+	f=fs.open("/sistema/langconfig.sist","r")
+	local idioma=f.readLine()
+	f.close()
+	if fs.exists("/sistema/idiomas/"..idioma) then
+		f=fs.open("/sistema/idiomas/Espaniol.marlang","r")
+		local tabulaBackup=f.readAll()
+		f.close()
+		local tabulaBackup=textutils.unserialize(tabulaBackup)
+		f=fs.open("/sistema/idiomas/"..idioma,"r")
+		local tabula=f.readAll()
+		f.close()
+		if textutils.unserialize(tabula) and textutils.unserialize(tabula)[arg] then
+			return textutils.unserialize(tabula)[arg]
+		elseif tabulaBackup[arg] then
+			return tabulaBackup[arg]
+		elseif textutils.unserialize(tabula)["missing"] then
+			return textutils.unserialize(tabula)["missing"]
+		else
+			olive.throwError("\""..arg.."\" not found or langfile invalid")
+			return "-missing-"
+		end
+	else 
+		olive.throwError("Language file missing or config corrupted")
+		return "-missing-"
+	end
+end
+function listaExpandible(opciones)				--No implementado, probablemente nunca lo sea
+	olive.setColors(colors.white,colors.black)
+	olive.square(posx,posy,tamx,tamy,colors.white)
+	if fs.list(ruta)~=nil then
+		local listElems=fs.list(ruta)
+	else
+		olive.throwError("La ruta no existe o no es valida")
+	end
+end
+function versionAPI(tamano)
+if tamano=="corto" then
+return "Olive API v1.2"
+elseif tamano=="artistic" then
+return "\"Cuidada Perfeccion\""
+elseif tamano=="completo" then
+return "Mar&Mar Olive API Release v1.2.0 \"Cuidada Perfeccion\""
+else
+return "Mar&Mar Olive API v1.2"
+end
+end
+function throwBSOD(razon)
+term.setBackgroundColor(2048)
+tamx,tamy=term.getSize()
+term.scroll(tamy)
+term.setTextColor(2048)
+term.setBackgroundColor(1)
+term.setCursorPos(tamx/2-#olive.getTexto("bsod1")/2,tamy/2-1)
+print(olive.getTexto("bsod1"))
+term.setTextColor(1)
+term.setBackgroundColor(2048)
+term.setCursorPos(tamx/2-#olive.getTexto("bsod2")/2,tamy/2)
+olive.getTexto("bsod2")
+term.setCursorPos(tamx/2-#(olive.getTexto("bsod3"))/2,tamy/2+1)
+print(olive.getTexto("bsod3"))
+print(razon)
+term.setCursorPos(tamx/2-#olive.getTexto("bsod4")/2,tamy/2+5)
+print(olive.getTexto("bsod4"))
+os.pullEvent("key")
+os.reboot()
+end
+function textField(space,color,x,y)
+if x~=nil and y~=nil then term.setCursorPos(x,y) end
+if color==nil then color=colors.white end
+term.setBackgroundColor(color) x=0
+while x<space do
+write" "
+x=x+1
+end
+end
+function setColors(bg,txt)
+term.setBackgroundColor(bg) term.setTextColor(txt)
+end
+function alerta2Opcs(titl,msg,op1,op2)
+tamx,tamy=term.getSize()
+if #titl>37 then
+titl=string.sub(titl,1,36)
+titl=titl.."..."
+end
+if #msg>36 then
+msg=string.sub(msg,1,35)
+msg=msg.."..."
+end
+olive.square(tamx/2-20,tamy/2-2,40,4,colors.blue)
+olive.square(tamx/2-19,tamy/2-1,38,2,colors.lightGray)
+term.setBackgroundColor(colors.red) term.setTextColor(colors.white)
+olive.writeAt(tamx/2+19,tamy/2-2,"X")
+olive.setColors(colors.blue, colors.white)
+olive.writeAt(tamx/2-20,tamy/2-2,titl)
+olive.setColors(colors.lightGray, colors.black)
+olive.writeAt(tamx/2-19,tamy/2-1,msg)
+olive.setColors(colors.gray, colors.white)
+olive.writeAt(tamx/2-2-#op1,tamy/2,op1)
+olive.writeAt(tamx/2+2,tamy/2,op2)
+while true do
+	e,bt,x,y=os.pullEvent("mouse_click")
+		if bt==1 and (x==math.floor(tamx/2+19) and y==math.floor(tamy/2-2)) then
+		data=false break
+		elseif (x>math.floor(tamx/2+2) and x<math.floor(tamx/2+2+#op2) and y==math.floor(tamy/2)) then
+			data=op2
+			break
+		elseif bt==1 and x>=math.floor(tamx/2-2-#op2) and x<=math.floor(tamx/2-2) and y==math.floor(tamy/2) then
+			data=op1
+			break
+		end
+end
+return data
+end
+function alertaSiNo(titl,msg)
+tamx,tamy=term.getSize()
+if #titl>46 then
+titl=string.sub(titl,1,43)
+titl=titl.."..."
+end
+if #msg>50 then
+msg=string.sub(msg,1,47)
+msg=msg.."..."
+end
+olive.square(tamx/2-24,tamy/2-2,50,4,colors.blue)
+olive.square(tamx/2-23,tamy/2-1,48,2,colors.lightGray)
+term.setBackgroundColor(colors.red) term.setTextColor(colors.white)
+olive.writeAt(tamx/2+25,tamy/2-2,"X")
+olive.setColors(colors.blue, colors.white)
+olive.writeAt(tamx/2-24,tamy/2-2,titl)
+olive.setColors(colors.lightGray, colors.black)
+olive.writeAt(tamx/2-19,tamy/2-1,msg)
+olive.setColors(colors.gray, colors.white)
+olive.writeAt(tamx/2-1-#olive.getTexto("si"),tamy/2,olive.getTexto("si"))
+olive.writeAt(tamx/2+1,tamy/2,olive.getTexto("no"))
+while true do
+	e,bt,x,y=os.pullEvent("mouse_click")
+		if bt==1 and (x==math.floor(tamx/2+24) and y==math.floor(tamy/2-2)) or (x>=math.floor(tamx/2+1) and x<=math.floor(tamx/2+1+#olive.getTexto("no")) and y==math.floor(tamy/2)) then
+			data=false
+			break
+		elseif bt==1 and x>=math.floor(tamx/2-1-#olive.getTexto("si")) and x<=math.floor(tamx/2-1) and y==math.floor(tamy/2) then
+			data=true
+			break
+		end
+end
+return data
+end
+function barraInicio(usn,OLIVE_TEMP1)
+p1=""
+OLIVE_UsrColor=tonumber(OLIVE_TEMP1)
+tamx,tamy=term.getSize()
+hasInicio=false
+if hasInicio==false then
+hasInicio=true
+olive.square(1,tamy-1-15,16,16,colors.lightGray)
+term.setTextColor(colors.red)
+olive.writeAt(1,tamy-1,olive.getTexto("apagar"))
+olive.writeAt(1,tamy-2,olive.getTexto("craftos"))
+olive.writeAt(1,tamy-3,olive.getTexto("reiniciar"))
+olive.writeAt(1,tamy-4,olive.getTexto("cambiaruser"))
+olive.writeAt(1,tamy-5,olive.getTexto("pcontrol"))
+term.setTextColor(OLIVE_UsrColor) if OLIVE_UsrColor==colors.lightGray or OLIVE_UsrColor==colors.green then term.setBackgroundColor(colors.white) end
+olive.writeAt(1,tamy-16,usn) term.setTextColor(colors.yellow) term.setBackgroundColor(colors.lightGray)
+olive.writeAt(1,tamy-15,olive.getTexto("escritorio"))
+OLIVE_StartBar=true
+while OLIVE_StartBar do
+reloj=os.startTimer(0.1)
+tamx,tamy=term.getSize()
+eventb,a,b,c=os.pullEvent()
+term.setBackgroundColor(colors.blue) --INICIO RELOJ
+term.setTextColor(1)
+olive.writeHour(tamx-4,tamy)
+if os.time()<500 then
+write"     "
+end
+reloj=os.startTimer(0.2)--FIN RELOJ
+if eventb=="mouse_click" then OLIVE_StartBar=false end
+if eventb=="mouse_click" and a==1 and c==tamy-2 and b>=1 and b<=#olive.getTexto("craftos") then
+term.setBackgroundColor(colors.black)
+olive.square(1,1,tamx,tamy,colors.black)
+term.setTextColor(colors.yellow) term.setCursorPos(1,1)
+print(os.version().." lanzado desde "..olive.version())
+accion="salir"
+haPasao=true
+hasInicio=false
+elseif eventb=="mouse_click" and a==1 and c==tamy-1 and b>=1 and b<=#olive.getTexto("apagar") then
+os.shutdown()
+elseif eventb=="mouse_click" and a==1 and c==tamy-3 and b>=1 and b<=#olive.getTexto("reiniciar") then
+os.reboot()
+elseif eventb=="mouse_click" and a==1 and c==tamy-16 and b>=1 and b<=#usn then
+accion="ruta" p1="usuarios/"..usn
+elseif eventb=="mouse_click" and a==1 and c==tamy-15 and b>=1 and b<=#olive.getTexto("escritorio") then
+accion="ruta" p1="usuarios/"..usn.."/escritorio"
+elseif eventb=="mouse_click" and a==1 and c==tamy-4 and b>=1 and b<=#olive.getTexto("cambiaruser") then
+return "run","sistema/usel.marprog"
+elseif eventb=="mouse_click" and a==1 and c==tamy-5 and b>=1 and b<=#olive.getTexto("pcontrol") then
+return "run","sistema/cpanel.marprog"
+elseif eventb=="mouse_click" and c==tamy and b>=1 and b<=#olive.getTexto("inicio")+4 or eventb=="key" and a==29 or eventb=="mouse_click" and c<=2 or eventb=="mouse_click" and b>=15 then
+haPasao=true
+hasInicio=false
+return "","","",""
+end
+if hasInicio==false then
+break
+end
+end
+end
+return accion,p1
+end
+function entraColor(titl)
+	tamx,tamy=term.getSize()
+	if #titl>37 then
+		titl=string.sub(titl,1,36)
+		titl=titl.."..."
+	end
+	olive.square(tamx/2-20,tamy/2-2,40,4,colors.blue)
+	olive.square(tamx/2-19,tamy/2-1,38,2,colors.lightGray)
+	term.setBackgroundColor(colors.red) term.setTextColor(colors.white)
+	olive.writeAt(tamx/2+19,tamy/2-2,"X")
+	olive.setColors(colors.blue, colors.white)
+	olive.writeAt(tamx/2-20,tamy/2-2,titl)
+	olive.setColors(colors.gray, colors.white)
+	olive.writeAt(tamx/2-#olive.getTexto("aceptar")/2,tamy/2,olive.getTexto("aceptar"))
+	term.setCursorPos(tamx/2-8, tamy/2-1) potencia=0 while potencia<16 do term.setBackgroundColor(2^potencia) write" " potencia=potencia+1 end
+	while true do
+		e,bt,x,y=os.pullEvent("mouse_click")
+			if bt==1 and (x==math.floor(tamx/2+19) and y==math.floor(tamy/2-2)) then
+				data=false
+				break
+			elseif bt==1 and x>=math.floor(tamx/2-8) and x<=math.floor(tamx/2+7) and y==math.floor(tamy/2-1) then
+				term.setCursorPos(tamx/2-8, tamy/2-1) potencia=0 while potencia<16 do term.setBackgroundColor(2^potencia) write" " potencia=potencia+1 end
+				data=2^(x-math.floor(tamx/2-8))
+				if data~=colors.black then olive.setColors(data,colors.black) else olive.setColors(data,colors.white) end
+				olive.writeAt(x,y,"O")
+			elseif x>=tamx/2-#olive.getTexto("aceptar")/2 and x<=tamx/2+#olive.getTexto("aceptar")/2 and y==math.floor(tamy/2) and data then
+				break
+			end
+	end
+	return data
+end
+function entraNombre(titl,chars,prevVal,oculto)
+if type(chars)=="number" then
+		tamx,tamy=term.getSize()
+		if #titl>37 then
+			titl=string.sub(titl,1,36)
+			titl=titl.."..."
+		end
+		olive.square(tamx/2-20,tamy/2-2,40,4,colors.blue)
+		olive.square(tamx/2-19,tamy/2-1,38,2,colors.lightGray)
+		term.setBackgroundColor(colors.red) term.setTextColor(colors.white)
+		olive.writeAt(tamx/2+19,tamy/2-2,"X")
+		olive.setColors(colors.blue, colors.white)
+		olive.writeAt(tamx/2-20,tamy/2-2,titl)
+		term.setCursorPos(tamx/2-chars/2,tamy/2-1)
+		olive.textField(chars,colors.white)
+		if prevVal and type(prevVal)=="string" then term.setTextColor(colors.gray) olive.writeAt(tamx/2-chars/2,tamy/2-1,string.sub(prevVal,1,chars)) end
+		olive.setColors(colors.gray,colors.white)
+		olive.writeAt(tamx/2-1,tamy/2,"OK")
+		cuenta=""
+		olive.setColors(colors.white,colors.black)
+		while true do
+			if oculto then
+				local i=1 local s=""
+				while i<=#cuenta do
+					s=s.."*"
+					i=i+1
+				end
+				olive.writeAt(tamx/2-#cuenta/2,tamy/2-1,s)
+			else
+				olive.writeAt(tamx/2-#cuenta/2,tamy/2-1,cuenta)
+			end
+			e,bt,x,y=os.pullEvent("mouse_click")
+			term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.textField(chars)
+			if oculto then
+				local i=1 local s=""
+				while i<=#cuenta do
+					s=s.."*"
+					i=i+1
+				end
+				olive.writeAt(tamx/2-#cuenta/2,tamy/2-1,s)
+			else
+				olive.writeAt(tamx/2-#cuenta/2,tamy/2-1,cuenta)
+			end
+				if bt==1 and (x==math.floor(tamx/2+19) and y==math.floor(tamy/2-2)) or (x>=math.floor(tamx/2+5) and x<=math.floor(tamx/2+6) and y==math.floor(tamy/2)) then--CERRAR
+					data=false
+					break
+				elseif bt==1 and x>=math.floor(tamx/2-chars/2) and x<=math.floor(tamx/2+chars/2) and y==math.floor(tamy/2-1) then-- DIRECTO
+					olive.setColors(colors.white,colors.black)
+					term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.textField(chars) term.setCursorPos(tamx/2-chars/2,tamy/2-1)
+					if oculto then
+						cuenta=olive.readN(chars,"*")
+					else
+						cuenta=olive.readN(chars)
+					end
+					term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.textField(chars)
+				elseif bt==1 and x>=math.floor(tamx/2-1) and x<=math.floor(tamx/2) and y==math.floor(tamy/2) then--ACEPTAR
+					data=cuenta
+					break
+				end
+		end
+		return data
+	end
+end
+function cuentaVeces(titl,chars)
+	if type(chars)=="number" then
+		tamx,tamy=term.getSize()
+		if #titl>37 then
+			titl=string.sub(titl,1,36)
+			titl=titl.."..."
+		end
+		olive.square(tamx/2-20,tamy/2-2,40,4,colors.blue)
+		olive.square(tamx/2-19,tamy/2-1,38,2,colors.lightGray)
+		term.setBackgroundColor(colors.red) term.setTextColor(colors.white)
+		olive.writeAt(tamx/2+19,tamy/2-2,"X")
+		olive.setColors(colors.blue, colors.white)
+		olive.writeAt(tamx/2-20,tamy/2-2,titl)
+		olive.setColors(colors.red, colors.black)
+		olive.writeAt(tamx/2-4-chars/2,tamy/2-1,"--")
+		olive.setColors(colors.red, colors.black)
+		olive.writeAt(tamx/2-1-chars/2,tamy/2-1,"-")
+		olive.setColors(colors.gray, colors.white)
+		olive.textField(chars,colors.white)
+		olive.setColors(colors.green,colors.white)
+		olive.writeAt(tamx/2+chars/2,tamy/2-1,"+")
+		olive.writeAt(tamx/2+2+chars/2,tamy/2-1,"++")
+		olive.setColors(colors.gray,colors.white)
+		olive.writeAt(tamx/2-1,tamy/2,"OK")
+		cuenta=0
+		olive.setColors(colors.white,colors.black)
+		while true do
+			olive.printAt(tamx/2-#tostring(cuenta)/2,tamy/2-1,cuenta)
+			e,bt,x,y=os.pullEvent("mouse_click")
+				if bt==1 and (x==math.floor(tamx/2+19) and y==math.floor(tamy/2-2)) or (x>=math.floor(tamx/2+5) and x<=math.floor(tamx/2+6) and y==math.floor(tamy/2)) then--CERRAR
+					data=false
+					break
+				elseif bt==1 and x>=math.floor(tamx/2-4-chars/2) and x<=math.floor(tamx/2-3-chars/2) and y==math.floor(tamy/2-1) then-- MENOS 10
+					cuenta=cuenta-10
+				elseif bt==1 and x==math.floor(tamx/2-1-chars/2) and y==math.floor(tamy/2-1) then-- MENOS 1
+					cuenta=cuenta-1
+				elseif bt==1 and x>=math.floor(tamx/2-chars/2) and x<=math.floor(tamx/2+chars/2-1) and y==math.floor(tamy/2-1) then-- DIRECTO
+					term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.setColors(colors.white,colors.black)
+					cuentaPre=cuenta
+					term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.textField(chars) term.setCursorPos(tamx/2-chars/2,tamy/2-1)
+					cuenta=olive.readN(chars)
+					if tonumber(cuenta) then
+						term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.textField(chars)
+						cuenta=tonumber(cuenta)
+					else
+						cuenta=cuentaPre
+						term.setCursorPos(tamx/2-chars/2,tamy/2-1) olive.textField(chars)
+					end
+				elseif bt==1 and x==math.floor(tamx/2+chars/2) and y==math.floor(tamy/2-1) then-- MAS 1
+					cuenta=cuenta+1
+				elseif bt==1 and x<=math.floor(tamx/2+3+chars/2) and x>=math.floor(tamx/2+1+chars/2) and y==math.floor(tamy/2-1) then-- MAS 10
+					cuenta=cuenta+10
+				elseif bt==1 and x>=math.floor(tamx/2-1) and x<=math.floor(tamx/2) and y==math.floor(tamy/2) then--ACEPTAR
+					data=cuenta
+					break
+				end
+		end
+		return data
+	end
+end
+function dibuTareas()
+tamx,tamy=term.getSize()
+term.setCursorPos(1,tamy-1)--Barra de inicio
+olive.square(1,tamy,tamx,1,2048)
+olive.square(1,tamy,#olive.getTexto("inicio")+4,1,colors.green)
+term.setTextColor(colors.white)
+olive.writeAt(3,tamy,olive.getTexto("inicio"))
+term.setBackgroundColor(colors.blue)
+olive.writeHour(tamx-4,tamy)
+end
+function readN(len, replaceChar) --Funcion hecha por Orwell de ComputerCraft Forums
+  len = len or 10
+  local input=""
+  local key = 0
+  term.setCursorBlink(true)
+  repeat
+        local e,p1 = os.pullEvent()
+        if e=="char" then
+          if #input < len then
+                input = input .. p1
+                term.write(replaceChar or p1)
+          end
+        elseif e=="key" and p1==keys.backspace and #input > 0 then
+          input = input:sub(1,#input-1)
+          local x,y = term.getCursorPos()
+          term.setCursorPos(x-1,y)
+          term.write(" ")
+          term.setCursorPos(x-1,y)
+        end
+  until p1==keys.enter or e=="mouse_click"
+  term.setCursorBlink(false)
+  return input
+end
+function barraDespl(x,y,tamy,total,actual,caben)
+if type(x)=="number" and type(y)=="number" and type(tamy)=="number" and type(total)=="number" and type(actual)=="number" and type(caben)=="number" then
+	if total~=0 and total>caben then mitad=(caben/total*tamy)/2
+		if caben<100 then
+			tamCuadro=tamy*caben/total
+		end
+		else mitad=tamy/2
+		tamCuadro=tamy
+	end
+	if total>caben then offBarra=(actual/total)*tamy else offBarra=0 end
+	mitad=math.floor(tamCuadro/2)+offBarra
+	olive.setColors(colors.lightGray,colors.black)
+	olive.square(x,y,1,tamy,colors.gray)
+	olive.square(x,y+offBarra,1,tamCuadro,colors.lightGray)
+	olive.writeAt(x,mitad+y,"=")
+else
+	olive.throwError("Los valores no son numeros")
+end
+end
+function square(ix,iy,tamx,tamy,color)
+term.setBackgroundColor(color)
+veces=0
+while veces<tamy do
+if veces==0 then
+term.setCursorPos(ix,iy)
+else
+term.setCursorPos(ix,iy+veces)
+end
+xv=0
+while xv<tamx do
+write" "
+xv=xv+1
+end
+veces=veces+1
+end
+end
+function printAt(x,y,msg)
+term.setCursorPos(x,y)
+print(msg)
+end
+function writeAt(x,y,msg)
+term.setCursorPos(x,y)
+write(msg)
+end
+function dibujarIcono(color,letra)
+term.setBackgroundColor(color)
+if letra==nil then
+write" "
+else
+if color~=colors.white then
+term.setTextColor(colors.white)
+else
+term.setTextColor(colors.black)
+end
+write(letra)
+term.setBackgroundColor(8)
+end
+end
+function customRun(path,...)			--Thanks to InDieTasten from the CC Forums
+	local l, errCont = loadfile(path) -- it will load the file(+ throw syntax errors)
+	if(not l) then
+		olive.throwError(tostring(errCont))
+	else
+		local e, m = pcall(l, ...) -- executing the code in the file with arguments
+		if(not e) then
+			olive.throwError(tostring(m))
+		end
+	end
+end
+function writeHour(x,y)
+timpo=os.time()
+term.setCursorPos(x,y)
+write(textutils.formatTime(timpo,true))
+end
+function checkExtension(ext,modo)
+if fs.exists("sistema/extensiones.sist") then
+	f=fs.open("sistema/extensiones.sist","r")
+	local tab=f.readAll()
+	f.close()
+	if textutils.unserialize(tab) then
+		tab=textutils.unserialize(tab)
+		if tab[ext] then
+			prog=tab[ext]["accion"] color=tab[ext]["color"] letra=tab[ext]["char"]
+		else
+			prog=tab["otro"]["accion"] color=tab["otro"]["color"] letra=tab["otro"]["char"]
+		end
+	else
+		error(olive.getTexto("extmal"))
+	end
+else
+	error(olive.getTexto("extmal"))
+end
+if modo=="ejecutar" then
+	return prog
+else
+	return tonumber(color),letra
+end
+end
+function registExtension(ext,prog,color,letra)
+if ext==nil or prog==nil or color==nil or letra==nil then
+return false
+else
+f=fs.open("sistema/extensiones.sist","r")
+tablaExt=f.readAll()
+f.close()
+tablaExt=textutils.unserialize(tablaExt)
+if tablaExt[ext] then error(olive.getTexto("yaexiste"))
+else
+tablaExt[ext]={["accion"]=prog,["color"]=color,["char"]=letra}
+tablaExt=textutils.serialize(tablaExt)
+f=fs.open("sistema/extensiones.sist","w")
+f.write(tablaExt)
+f.close()
+end
+end
+end
+function menuContext(x,y)
+tamx,tamy=term.getSize()
+opcs=fs.list("sistema/contextual")
+if tamx-x<12 then x=tamx-12 end
+if tamy-(y+#opcs)<0 then y=tamy-#opcs end
+olive.square(x,y,12,#opcs,colors.gray)
+end
+function throwError(msg)
+amsg=#msg
+if #msg<=5 then
+amsg=5
+end
+tamx,tamy=term.getSize()
+if #olive.getTexto("error")>#msg-1 then titl=string.sub(olive.getTexto("error"),0,#msg-1) else titl=olive.getTexto("error") end
+olive.square(tamx/2-#msg/2,tamy/2-1,amsg,3,colors.lightGray)
+olive.square(tamx/2-#msg/2,tamy/2-1,amsg,1,colors.blue) term.setTextColor(1)
+if #msg>tamx then xError=tamx-2 else xError=#msg end
+olive.printAt(tamx/2-xError/2+1,tamy/2-1,titl)
+olive.setColors(colors.yellow,colors.black)
+if #msg<=tamx then
+	olive.writeAt(tamx/2-#msg/2,tamy/2-1,"!")
+else
+	olive.writeAt(1,tamy/2-1,"!")
+end
+olive.setColors(colors.lightGray,colors.white)
+olive.printAt(tamx/2-xError/2,tamy/2,msg) term.setBackgroundColor(colors.gray)
+olive.printAt(tamx/2-1,tamy/2+1,"OK")
+while true do
+e,e1,e2,e3=os.pullEvent("mouse_click")
+if e=="mouse_click" and e1==1 and e2>=math.floor(tamx/2-1) and e2<=math.floor(tamx/2+1) and e3==math.floor(tamy/2+1) then
+break
+end
+end
+end
+function throwMsg(tit,msg)
+amsg=#msg
+if #msg<=5 then
+amsg=5
+end
+tamx,tamy=term.getSize()
+olive.square(tamx/2-#msg/2,tamy/2-1,amsg,3,colors.lightGray)
+olive.square(tamx/2-#msg/2,tamy/2-1,amsg,1,colors.blue) term.setTextColor(1)
+olive.printAt(tamx/2-#msg/2,tamy/2-1,tit)
+term.setBackgroundColor(colors.lightGray)
+olive.printAt(tamx/2-#msg/2,tamy/2,msg) term.setBackgroundColor(colors.gray)
+olive.printAt(tamx/2-1,tamy/2+1,"OK")
+while true do
+e,e1,e2,e3=os.pullEvent("mouse_click")
+if e=="mouse_click" and e1==1 and e2>=math.floor(tamx/2-1) and e2<=math.floor(tamx/2+1) and e3==math.floor(tamy/2+1) then
+break
+end
+end
+end
+function throwWait(tit,msg)
+amsg=#msg
+if #msg<=5 then
+amsg=5
+end
+tamx,tamy=term.getSize()
+olive.square(tamx/2-#msg/2,tamy/2-1,amsg,3,colors.lightGray)
+olive.square(tamx/2-#msg/2,tamy/2-1,amsg,1,colors.blue) term.setTextColor(1)
+olive.printAt(tamx/2-#msg/2,tamy/2-1,tit)
+term.setBackgroundColor(colors.lightGray)
+olive.printAt(tamx/2-#msg/2,tamy/2,msg) term.setBackgroundColor(colors.gray)
+end
+function drawOnOff(x,y,val)
+	term.setCursorPos(x,y)
+	term.setBackgroundColor(colors.lime) write"  " term.setBackgroundColor(colors.red) write" " term.setBackgroundColor(colors.gray)
+	if val==true then term.setCursorPos(x+1,y) write"  " elseif val==false then term.setCursorPos(x,y) write"  " end
+end
+function abrirEnlace(ruta)
+	if fs.exists(ruta) then
+		f=fs.open(ruta,"r")
+		act=f.readLine()
+		route=f.readLine()
+		f.close()
+		if act==nil then return "edit",ruta
+		elseif act=="ruta" then
+			return "sistema/explora.marprog",route
+		elseif act=="edit" then
+			return "edit",route
+		elseif act=="ejecutar" then
+			return "exe",route
+		else
+			return act,route
+		end
+	end
+end

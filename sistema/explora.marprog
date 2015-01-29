@@ -1,0 +1,237 @@
+--Explorador de Archivos Mar&Mar Explora, parte del Sistema Operativo Mar&Mar Olive para ComputerCraft
+--Olive (C) Mar&Mar Hisperia 2012
+--Olive, Explora y Mar&Mar Olive son marcas registradas de Mar&Mar SL. Queda prohibido su uso sin autorización expresa del propietario de dicha marca.
+accion=""
+os.pullEventRaw=os.pullEvent
+ruta=""
+tArgs={ ... }
+desplazamiento=0
+tamx,tamy=term.getSize()
+function oliveChoice(archivo)
+	OLIVE_Choice=olive.alerta2Opcs(olive.getTexto("archivo"),olive.getTexto("abroedit"),olive.getTexto("abrefile"),olive.getTexto("editfile"))
+	if OLIVE_Choice==olive.getTexto("abrefile") then
+		customRun(archivo)
+	elseif OLIVE_Choice==olive.getTexto("editfile") then
+		shell.run("sistema/edit2.marprog",archivo)
+	elseif OLIVE_Choice~=false then
+		olive.throwError(olive.getTexto("exefallo"))
+	end
+end
+function abreArchivo(archivo,dato)
+	if fs.isDir(archivo) and not dato then
+		desplazamiento=0
+		shell.run("sistema/Explora.marprog",archivo)
+	elseif fs.isDir(archivo) then
+		desplazamiento=0
+		ruta=archivo
+	elseif fs.exists(archivo) then
+		r,actualok,ext=string.match(archivo, "(.-)([^\\/]-%.?([^%.\\/]*))$")
+		local accion=olive.checkExtension("."..ext, "ejecutar") if ext=="directorio" then accion="sistema/Explora.marprog" end
+		if fs.exists(accion) or fs.exists("rom/programs/"..accion) then
+			shell.run(accion, archivo)
+			if not ok then olive.throwError(err) end
+		elseif accion=="action_check" then
+			oliveChoice(archivo)
+		elseif accion=="action_nlc" then
+			local accion, parag=olive.abrirEnlace(archivo)
+			if accion=="exe" then
+				local ok,contentError=pcall(shell.run,parag)
+				if not ok then
+					olive.throwError(contentError)
+				end
+			elseif accion=="sistema/explora.marprog" then
+				desplazamiento=0
+				local ok,contentError=pcall(shell.run,"sistema/explora.marprog",parag)
+				if not ok then
+					olive.throwError(contentError)
+				end
+			else
+				shell.run(accion,parag)
+			end
+		else
+			shell.run(accion,archivo)
+		end
+	end
+end																								--/Hay que arreglar esto
+if #tArgs==0 then ruta=""
+elseif #tArgs>1 then
+	v=1
+	while v<#tArgs do
+		rute=tArgs[v].." "..tArgs[v+1]
+		v=v+1
+	end
+	if fs.isDir(rute) then
+		ruta=rute
+	else
+		ruta=""
+	end
+	elseif fs.isDir(tArgs[1]) then ruta=tArgs[1]
+end
+salir=false
+function dibujar()
+shell.run("clear")
+olive.square(1,1,tamx,1,colors.blue)
+term.setTextColor(1)
+olive.writeAt(1,1,"Explora:"..ruta)
+term.setCursorPos(tamx,1) term.setBackgroundColor(colors.red) write"X"
+olive.square(1,2,tamx,tamy-2,colors.white)
+olive.square(1,2,tamx,1,colors.gray)
+term.setTextColor(1) term.setBackgroundColor(colors.lightBlue)
+olive.writeAt(2,200,"<-") olive.writeAt(5,200,"->")
+term.setTextColor(colors.black) term.setCursorPos(8,2)
+olive.textField(tamx-13,colors.lightGray) term.setCursorPos(3,2) term.setTextColor(1) term.setBackgroundColor(colors.lightBlue)
+write"^"
+olive.writeAt(5,2,"/")
+carpeta=fs.list(ruta)
+veces=1+desplazamiento
+while veces<=#carpeta do
+actual=carpeta[veces]
+r,actualok,ext=string.match("/"..ruta.."/"..actual, "(.-)([^\\/]-%.?([^%.\\/]*))$")    --Un poco bugueado
+term.setCursorPos(1,veces+3-desplazamiento)
+actualok=string.gsub(actualok,"."..ext,"",1)
+if fs.isDir(ruta.."/"..actual) then 									--Extensiones
+local col,let=olive.checkExtension("carpeta")
+olive.dibujarIcono(col,let)
+else
+local col,let=olive.checkExtension("."..ext)
+olive.dibujarIcono(col,let)
+actualok=actual
+end
+if string.len(actualok)>11 then
+actualok=string.sub(actualok,1,11)
+actualok=actualok.."..."
+end
+term.setCursorPos(3,veces+3-desplazamiento)
+term.setBackgroundColor(colors.white)
+term.setTextColor(colors.black)
+print(actualok)
+if veces>tamy-5+desplazamiento then
+break
+end
+veces=veces+1
+end
+olive.barraDespl(tamx,3,tamy-3,#carpeta,desplazamiento+1,tamy-4)
+olive.dibuTareas()
+end
+function deschunguizar(caramelo)
+	while string.sub(caramelo,0,1)=="/" and caramelo~="/" do
+		caramelo=string.sub(caramelo,2)
+	end
+	return caramelo
+end
+term.setCursorPos(tamx,tamy)
+term.setBackgroundColor(colors.blue)
+olive.writeHour(tamx-4,tamy)
+reloj=os.startTimer(0.1)
+dibujar()
+while true do							--Reconocimiento de eventos 1 
+ruta=deschunguizar(ruta)
+carpeta=fs.list(ruta)
+if ruta=="sistema/cpanel" then
+	shell.run("sistema/cpanel.marprog")
+	break
+end
+if event~="timer" and noDibujar~=true then dibujar() else noDibujar=nil end
+hasInicio=false
+haPasao=false
+event,a,b,c=os.pullEvent()
+if event=="mouse_drag" and a==1 and b==tamx then														--ARRASTRAR con el ratón
+
+elseif event=="key" and a==209 then
+dOld=desplazamiento desplazamiento=#carpeta-(tamy-4)
+if desplazamiento<0 then desplazamiento=0 end if desplazamiento~=dOld then end
+elseif event=="key" and a==201 then
+dOld=desplazamiento desplazamiento=0 if desplazamiento~=dOld then end
+elseif event=="key" and a==200 or event=="mouse_scroll" and a==-1 then
+dOld=desplazamiento desplazamiento=desplazamiento-1 if desplazamiento<0 then desplazamiento=0 end if desplazamiento==dOld then noDibujar=true end
+elseif event=="key" and a==208 or event=="mouse_scroll" and a==1 then
+dOld=desplazamiento desplazamiento=desplazamiento+1 if desplazamiento>#carpeta-(tamy-4) then desplazamiento=#carpeta-(tamy-4) end if desplazamiento<0 then desplazamiento=0 end if desplazamiento==dOld then noDibujar=true end
+elseif event=="key" and a==49 then
+narchi=olive.entraNombre(olive.getTexto("nuevoarch"),30)
+if type(narchi)=="string" and fs.exists("/"..ruta.."/"..narchi) then olive.throwError("Archivo ya existente") elseif type(narchi)=="string" then
+f=fs.open(ruta.."/"..narchi,"w")
+f.close()
+end
+reloj=os.startTimer(0.1)
+elseif event=="key" and a==48 then
+narchi=olive.entraNombre(olive.getTexto("borrararch"),30)
+if type(narchi)=="string" and fs.exists("/"..ruta.."/"..narchi) then
+	decision=olive.alertaSiNo(olive.getTexto("alertasist"),olive.getTexto("confirmborrar"))
+	if decision then fs.delete(ruta.."/"..narchi) end
+	decision=nil
+elseif type(narchi)=="string" then olive.throwError("No existe el archivo") end
+reloj=os.startTimer(0.1)
+dibujar()
+elseif event=="key" and a==50 then
+narchi=olive.entraNombre(olive.getTexto("nuevacarp"),30)
+if type(narchi)=="string" and fs.isDir("/"..ruta.."/"..narchi) then olive.throwError("Archivo ya existente") elseif type(narchi)=="string" then fs.makeDir("/"..ruta.."/"..narchi) end
+reloj=os.startTimer(0.1)
+elseif event=="timer" and a==reloj then
+term.setBackgroundColor(colors.blue)
+term.setCursorPos(tamx-4,tamy)
+term.setTextColor(1)
+olive.writeHour(tamx-4,tamy)
+if os.time()<500 then
+write"     "
+end
+reloj=os.startTimer(0.1)
+elseif event=="mouse_click" or event=="key" and a==29 then
+if a==1 and b==tamx and c==1 then
+break
+elseif b==5 and c==2 then
+ruta="/"
+elseif b==3 and c==2 then						--Volver atrás una carpeta
+ruta, ult = string.match(ruta, "(.+)/([^/]+)$")
+if ruta==nil or not fs.isDir(ruta) then
+ruta="/"
+end
+elseif a==2 and b>=15 and b<tamx and c>2 and c<tamy then
+	shell.run("sistema/mcontext.marprog",ruta)
+	reloj=os.startTimer(0.1)
+elseif a==1 and b<=15 and c>2 and c<tamy then						--Clic en un archivo
+if c-3+desplazamiento<=#carpeta and c-3~=0 then
+arsel=ruta.."/"..carpeta[c-3+desplazamiento]
+abreArchivo(arsel,true)
+reloj=os.startTimer(0.1)
+end
+elseif a==2 and b<=15 and c>2 and c<tamy and carpeta[c-3+desplazamiento] then						--CLIC DERECHO en un archivo
+	shell.run("sistema/mcontext.marprog",ruta.."/"..carpeta[c-3+desplazamiento]) reloj=os.startTimer(0.1) 
+elseif a==1 and c==2 and b>=8 and b<=tamx-6 then				--Barra de dirección
+rutaold=ruta
+term.setCursorPos(8,2)
+term.setBackgroundColor(colors.lightGray)
+ruta=read()
+desplazamiento=0
+reloj=os.startTimer(0.1)
+if not fs.isDir(ruta) then
+ruta=rutaold
+reloj=os.startTimer(0.1)
+end
+elseif event=="mouse_click" and c==tamy and b>=1 and b<=#olive.getTexto("inicio")+4 or event=="key" and a==29 then --MENU DE INICIO
+accion=nil arg1=nil arg2=nil arg3=nil arg4=nil
+f=fs.open("usuarios/"..usn.."/color.sist","r")
+OLIVE_UsrColor=f.readLine()
+f.close()
+accion,arg1,arg2,arg3,arg4=olive.barraInicio(usn,OLIVE_UsrColor)
+if accion=="run" and arg1~=nil then
+if arg2==nil then arg2="" end if arg3==nil then arg3="" end
+shell.run(arg1.." "..arg2)
+elseif accion=="ruta" and arg1~=nil then
+ruta=arg1
+desplazamiento=0
+end
+if accion=="salir" then
+	shell.run("shell")
+end
+
+reloj=os.startTimer(0.2)
+accion=nil arg1=nil arg2=nil arg3=nil
+else noDibujar=true
+end
+else noDibujar=true
+end
+if salir==true then
+haPasao=false
+break
+end
+end

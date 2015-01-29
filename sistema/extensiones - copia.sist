@@ -1,0 +1,37 @@
+{
+	[".lua"]={
+		["color"]=2048,
+		["char"]="L",
+		["accion"]="action_check",
+		},
+	[".marprog"]={
+		["accion"]="action_check",
+		["color"]=8192,
+		["char"]="M",
+		},
+	[".nlc"]={
+		["accion"]="action_nlc",
+		["color"]=512,
+		["char"]=">",
+		},
+	[".pai"]={
+		["accion"]="paint",
+		["color"]=64,
+		["char"]="p",
+		},
+	[".txt"]={
+		["accion"]="edit",
+		["color"]=1,
+		["char"]="t",
+		},
+	["dir"]={
+		["accion"]="sistema/Explora.marprog",
+		["color"]=16,
+		["char"]="/",
+		},
+	["else"]={
+		["accion"]="action_check",
+		["color"]=1,
+		["char"]="?",
+		},
+}

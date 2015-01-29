@@ -1,3 +1,0 @@
-action_check
-2048
-L
