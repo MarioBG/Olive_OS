@@ -27,28 +27,44 @@ local function copicorta(ruta,modo)
 	f.close()
 end
 local function renombrar(rutaAct)
-	local nNombre=olive.entraNombre(olive.getTexto("renom"),25,olive.getTexto("petecor"))
-	if checkFirstDir(rutaAct)~="sistema" and rutaAct~="sistema" then
+	if fs.getName(rutaAct)~="escritorio" and fs.getName(rutaAct)~=usn and checkFirstDir(rutaAct)~="sistema" and rutaAct~="sistema" and checkFirstDir(rutaAct)~="rom" and rutaAct~="rom" then
+		local nNombre=olive.entraNombre(olive.getTexto("renom"),25,olive.getTexto("petecor"))
 		fs.move(rutaAct, string.match(rutaAct, "(.-)([^\\/]-%.?([^%.\\/]*))$")..nNombre)
 	else
 		olive.throwError(olive.getTexto("nocarpesis"))
 	end
 end
+local function accesoDir(rutaAct)
+	if olive.alertaSiNo(olive.getTexto("accedir"),rutaAct) then
+		local s=olive.entraNombre(olive.getTexto("accedir"),35)
+		if s then
+			f=fs.open("usuarios/"..usn.."/escritorio/"..s..".nlc","w")
+			f.writeLine(rutaAct)
+			f.close()
+		end
+	end
+end
 local function borrar(rutaAct)
-	if rutaAct=="usuarios/"..usn.."/papelera" then
+	if rutaAct=="usuarios/"..usn.."/papelera" or rutaAct=="/usuarios/"..usn.."/papelera" or rutaAct=="//usuarios/"..usn.."/papelera" then
 		local decis=olive.alertaSiNo(olive.getTexto("alertasist"),olive.getTexto("borrapape"))
 		if decis then
 			fs.delete("usuarios/"..usn.."/papelera")
 			fs.makeDir("usuarios/"..usn.."/papelera")
 		end
-	elseif checkFirstDir(rutaAct)=="sistema" or rutaAct=="sistema" then
+	elseif checkFirstDir(rutaAct)=="rom" or rutaAct=="rom" or checkFirstDir(rutaAct)=="sistema" or rutaAct=="sistema" or fs.getName(rutaAct)=="escritorio" or fs.getName(rutaAct)==usn then
 		olive.throwError(olive.getTexto("nocarpesis"))
 	else
 		local decis=olive.alertaSiNo(olive.getTexto("alertasist"),olive.getTexto("deseaborrar")..rutaAct:sub(-20).."?")
 		if decis then
-			if fs.exists( "usuarios/"..usn.."/Papelera" ) and fs.isDir( "usuarios/"..usn.."/Papelera" ) then
-				local sDest = fs.combine( "usuarios/"..usn.."/Papelera", fs.getName(rutaAct) )
-				fs.move( rutaAct, sDest )
+			if fs.exists( "usuarios/"..usn.."/papelera" ) and fs.isDir( "usuarios/"..usn.."/papelera" ) and not fs.exists("usuarios/"..usn.."/papelera/"..fs.getName(rutaAct)) then
+				if string.sub(rutaAct,1,-#fs.getName(rutaAct)-1)~="usuarios/"..usn.."/papelera" then
+					local sDest = fs.combine( "usuarios/"..usn.."/Papelera", fs.getName(rutaAct) )
+					fs.move( rutaAct, sDest )
+				else
+					fs.delete(rutaAct)
+				end
+			else
+				fs.delete(rutaAct)
 			end
 		end
 	end
@@ -69,15 +85,29 @@ local function pegar(rutaAct)
 	modo=f.readLine()
 	f.close()
 	if ruta==rutaAct then error(olive.getTexto("error_rutasIg")) end
-	fs.copy(ruta,rutaAct.."/"..fs.getName(ruta))																	--Whyyyy
-	if modo=="cortar" then fs.delete(ruta) end												--DAFUQ
+	if fs.exists(rutaAct.."/"..fs.getName(ruta)) then
+		r,actualok,ext=string.match(fs.getName(ruta), "(.-)([^\\/]-%.?([^%.\\/]*))$")
+		actualok=string.sub(actualok,1,-(#ext+2)) ext="."..ext
+		if olive.alertaSiNo(olive.getTexto("alertasist"),olive.getTexto("desea_2")..actualok.."_2"..ext.."?") and not fs.exists(rutaAct.."/"..fs.getName(ruta).."_2") then
+			fs.copy(ruta,rutaAct.."/"..actualok.."_2"..ext)
+		end
+	else
+		fs.copy(ruta,rutaAct.."/"..fs.getName(ruta))	
+	end
+	if modo=="cortar" then fs.delete(ruta) fs.delete("sistema/temporal.sist") end												
 end
 local function tamano(rutaAct)
-	local filesize=fs.getSize(rutaAct) local pref="B"
+	local filesize=oliveFS.getRecursiveSize(rutaAct) local pref="B"
 	if filesize/1024>=1 then filesize=filesize/1024 pref="KB" end
 	if filesize/1024>=1 then filesize=filesize/1024 pref="MB" end
 	if filesize/1024>=1 then filesize=filesize/1024 pref="GB" end
 	olive.throwMsg(olive.getTexto("tamano"), tostring(round(filesize,2)).." "..pref)
+end
+local function exeShellRun(rutaAct)
+	local err,msg=pcall(shell.run,rutaAct)
+	if err then
+		olive.throwError(msg)
+	end
 end
 local function checkRuta(argumentos)
 	if argumentos and #argumentos>0 then
@@ -109,7 +139,7 @@ olive.writeAt(tamx,1,"X") olive.setColors(colors.white,colors.gray)
 term.setCursorPos(1,3)
 write(olive.getTexto("rutaactual")..stringRuta)
 end
-local isRunning=false
+local r,actualok,ext=string.match(stringRuta, "(.-)([^\\/]-%.?([^%.\\/]*))$")
 if fs.exists(stringRuta) then
 	if fs.isDir(stringRuta) then
 		while true do
@@ -160,6 +190,10 @@ if fs.exists(stringRuta) then
 			olive.writeAt(1,8,olive.getTexto("tamano"))
 			olive.writeAt(1,9,olive.getTexto("renom"))
 			olive.writeAt(1,10,olive.getTexto("editar"))
+			olive.writeAt(1,11,olive.getTexto("accedir"))
+			if (ext=="lua" or ext=="marprog") then
+				olive.writeAt(1,12,olive.getTexto("exeshellrun"))
+			end
 			local e,bot,x,y=os.pullEvent("mouse_click")
 			if x<=#olive.getTexto("borrar") and y==5 then
 				borrar(stringRuta) break
@@ -172,7 +206,11 @@ if fs.exists(stringRuta) then
 			elseif x<=#olive.getTexto("renom") and y==9 then
 				renombrar(stringRuta) break
 			elseif x<=#olive.getTexto("editar") and y==10 then
-				shell.run("edit",stringRuta) break
+				shell.run("sistema/edit2.marprog",stringRuta) break
+			elseif x<=#olive.getTexto("accedir") and y==11 then
+				accesoDir(stringRuta) break
+			elseif x<=#olive.getTexto("exeshellrun") and y==12 and (ext=="lua" or ext=="marprog") then
+				exeShellRun(stringRuta) break
 			elseif x==tamx and y==1 then break
 			end
 		end

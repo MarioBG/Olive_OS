@@ -3,12 +3,27 @@
 --Olive, OliveFS API y Mar&Mar Olive son marcas registradas de Mar&Mar SL. Queda prohibido su uso sin autorización expresa del propietario de dicha marca.
 function version(tamano)
 	if tamano=="corto" then
-		return "Olive API v1.1"
+		return "Olive API v1.2"
 	elseif tamano=="artistic" then
-		return "\"Blossoming Joy\""
+		return "\"Cool Seabreeze\""
 	elseif tamano=="completo" then
-		return "Mar&Mar Olive API Release v1.1.0 \"Blossoming Joy\""
+		return "Mar&Mar Olive FS API Release v1.2.0 \"Cool Seabreeze\""
 	else
-		return "Mar&Mar Olive API v1.1"
+		return "Mar&Mar Olive FS API v1.2"
 	end
+end
+function getRecursiveSize(path) --por InDieTasten, CC Forums
+        local result = 0
+		if fs.isDir(path) then
+			for k,v in pairs(fs.list(path)) do
+				if(fs.isDir(path.."/"..v) and path.."/"..v~="rom") then
+						result = result + getRecursiveSize(path.."/"..v)
+				else
+						result = result + fs.getSize(path.."/"..v)
+				end
+			end
+		else
+			result = fs.getSize(path)
+		end
+        return result
 end

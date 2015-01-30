@@ -175,87 +175,9 @@ if fs.exists("/usuarios")==false or #fs.list("/usuarios")==0 then --Comprueba si
 	olive.printAt(tamx/2-#"Bienvenue a Mar&Mar Olive"/2,4,"Bienvenue à Mar&Mar Olive")
 	olive.printAt(tamx/2-#"Select the system's language"/2,6,"Select the system's language")
 	olive.printAt(tamx/2-#"Elija el idioma del sistema"/2,7,"Elija el idioma del sistema")
-	olive.printAt(tamx/2-#"Choissis la langue du systeme"/2,8,"Choissis la langue du système")
+	olive.printAt(tamx/2-#"Choissis la langue du systeme"/2,8,"Choissis la langue du systeme")
 	selIdioma()
-	sleep(2)
-	olive.setColors(colors.lightBlue,colors.white)
-	term.scroll(tamy)
-	printCenter(olive.getTexto("bienvenida"),tamy/2-4)
-	printCenter(olive.getTexto("configure"),tamy/2-3)
-	printCenter(olive.getTexto("nombreusuario"),tamy/2-2)
-	printCenter(olive.getTexto("pass1"),tamy/2)
-	printCenter(olive.getTexto("pass2"),tamy/2+2)
-	printCenter(olive.getTexto("color"),tamy/2+4)
-	printCenter(olive.getTexto("nombrepc"),tamy/2+6)
-	olive.textField(16,colors.white,tamx/2-8,tamy/2-1)
-	olive.textField(16,colors.white,tamx/2-8,tamy/2+1)
-	olive.textField(16,colors.white,tamx/2-8,tamy/2+3)
-	term.setCursorPos(tamx/2-8, tamy/2+5) potencia=0 while potencia<16 do term.setBackgroundColor(2^potencia) write" " potencia=potencia+1 end
-	olive.textField(16,colors.white,tamx/2-8,tamy/2+7)
-	olive.square(math.floor(tamx/2),tamy-2,math.ceil(tamx/2),3,colors.lime) term.setTextColor(colors.white)
-	olive.writeAt(tamx/4*3-#olive.getTexto("aceptar")/2,tamy-1,olive.getTexto("aceptar"))
-	while true do
-		term.setTextColor(colors.black)
-		e,p1,p2,p3=os.pullEvent("mouse_click")
-		if p1==1 and p3==math.floor(tamy/2-1) and p2>=tamx/2-9 and p2<=tamx/2+7 then
-			olive.textField(16,colors.white,tamx/2-8,tamy/2-1) term.setCursorPos(tamx/2-8,tamy/2-1)
-			usn=olive.readN(16)
-		elseif p1==1 and p3==math.floor(tamy/2+1) and p2>=tamx/2-9 and p2<=tamx/2+7 then
-			olive.textField(16,colors.white,tamx/2-8,tamy/2+1) term.setCursorPos(tamx/2-8,tamy/2+1)
-			pass1=olive.readN(16,"*")
-		elseif p1==1 and p3==math.floor(tamy/2+3) and p2>=tamx/2-9 and p2<=tamx/2+7 then
-			olive.textField(16,colors.white,tamx/2-8,tamy/2+3) term.setCursorPos(tamx/2-8,tamy/2+3)
-			pass2=olive.readN(16,"*")
-		elseif p1==1 and p3==math.floor(tamy/2+5) and p2>=tamx/2-9 and p2<=tamx/2+7 then
-			term.setCursorPos(tamx/2-8, tamy/2+5) potencia=0 while potencia<16 do term.setBackgroundColor(2^potencia) write" " potencia=potencia+1 end
-			color=2^(p2+9-tamx/2) term.setBackgroundColor(color) 
-			olive.writeAt(p2,p3,"O")
-		elseif p1==1 and p3==math.floor(tamy/2+7) and p2>=tamx/2-9 and p2<=tamx/2+7 then
-			olive.textField(16,colors.white,tamx/2-8,tamy/2+7) term.setCursorPos(tamx/2-8,tamy/2+7)
-			pcname=olive.readN(16)
-		elseif p1==1 and p3>=math.floor(tamy-2) and p3<=math.floor(tamy) and p2>=tamx/2-1 and p2<=tamx-1 then
-			if usn~=nil and pass1~=nil and pass2~=nil and color~=nil and pcname~=nil then
-				if pass1==pass2 then
-					if fs.isDir("/usuarios")~=true then
-						fs.makeDir("/usuarios")
-					end
-					fs.makeDir("/usuarios/"..usn)
-					fs.makeDir("/usuarios/"..usn.."/escritorio")
-					fs.makeDir("/usuarios/"..usn.."/papelera")
-					f=fs.open("/usuarios/"..usn.."/escritorio/"..olive.getTexto("PC")..".nlc","w")
-					f.writeLine("ruta")
-					f.writeLine("/")
-					f.close()
-					f=fs.open("/usuarios/"..usn.."/escritorio/"..olive.getTexto("papelera")..".nlc","w")
-					f.writeLine("ruta")
-					f.writeLine("/usuarios/"..usn.."/papelera")
-					f.close()
-					f=fs.open("/usuarios/"..usn.."/escritorio/TacoEdit.nlc","w")
-					f.writeLine("/sistema/tacoEdit.lua")
-					f.writeLine("")
-					f.close()
-					file=fs.open("/usuarios/"..usn.."/contrasena.sist", "w")
-					file.writeLine(pass)
-					file.close()
-					file=fs.open("/usuarios/"..usn.."/color.sist", "w")
-					file.writeLine(color)
-					file.close()
-					os.setComputerLabel(pcname)
-					shell.run("sistema/desktop.marprog",usn)
-				else
-					olive.setColors(colors.lightBlue,colors.red)
-					printCorner(olive.getTexto("passnoeq"),2)
-					olive.square(math.floor(tamx/2),tamy-2,math.ceil(tamx/2),3,colors.lime) term.setTextColor(colors.white)
-					olive.writeAt(tamx/4*3-#olive.getTexto("aceptar")/2,tamy-1,olive.getTexto("aceptar"))
-				end
-			else
-				olive.setColors(colors.lightBlue,colors.red)
-				printCorner(olive.getTexto("faltacampo"),2)
-				olive.square(math.floor(tamx/2),tamy-2,math.ceil(tamx/2),3,colors.lime) term.setTextColor(colors.white)
-				olive.writeAt(tamx/4*3-#olive.getTexto("aceptar")/2,tamy-1,olive.getTexto("aceptar"))
-			end
-		end
-	end
+	shell.run("sistema/creauser.marprog")
 else  -- Este es ya el inicio de sesion de veces sucesivas
 function compruebaColor(color)
 file=fs.open("/usuarios/"..usuario.."/color.sist", "r")
